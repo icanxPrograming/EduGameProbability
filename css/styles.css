@@ -1,0 +1,573 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: #000;
+  font-family: sans-serif;
+}
+
+#game {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* MAP */
+#intro-map {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* LAYER UMUM */
+.layer {
+  position: absolute;
+  inset: 0;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  /* background-size akan diatur dinamis atau tetap di sini */
+}
+
+.sky {
+  z-index: 1;
+  background-size: 100% 100%;
+}
+.clouds {
+  z-index: 2;
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+}
+.mountains {
+  z-index: 3;
+  background-size: 100% 100%;
+}
+.ground {
+  z-index: 4;
+  background-size: 100% auto;
+}
+.front {
+  z-index: 5;
+  background-size: 100% auto;
+}
+
+#player {
+  position: absolute;
+  left: 120px;
+  width: 96px;
+  height: 96px;
+  background-image: url("../assets/images/player.png");
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  z-index: 6;
+
+  /* Menempel pada hasil kalkulasi JS */
+  bottom: var(--ground-height, 140px);
+
+  /* Hilangkan transform translateY jika mengganggu, 
+     gunakan margin-bottom untuk fine-tuning posisi kaki */
+  margin-bottom: -5px;
+
+  /* Pastikan transisi smooth saat resize (opsional) */
+  /* transition: bottom 0.1s ease-out; */
+}
+
+/* Sembunyikan peringatan secara default */
+#rotate-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: white;
+  z-index: 9999;
+  text-align: center;
+  padding-top: 20%;
+}
+
+/* Tampilkan HANYA jika HP dalam posisi Portrait */
+@media screen and (orientation: portrait) {
+  #rotate-warning {
+    display: block;
+  }
+  #game {
+    display: none; /* Sembunyikan game saat posisi salah */
+  }
+}
+
+#controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  pointer-events: none; /* Agar tidak menghalangi klik lain di layar */
+  z-index: 1000;
+}
+
+.control-btn {
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: 15px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem;
+  pointer-events: auto; /* Aktifkan sentuhan untuk tombol */
+  user-select: none;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Class ini akan dipicu baik oleh touch maupun keyboard */
+.control-btn.active {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0.9);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Sembunyikan di PC jika kamu mau, tapi permintaanmu tetap tampil */
+@media (pointer: fine) {
+  /* Opsional: styling khusus PC */
+}
+
+/* Container isi overlay agar tersusun vertikal */
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px; /* Jarak antara judul dan tombol */
+}
+
+/* Styling Judul Game */
+.game-title {
+  color: #ffffff;
+  font-size: 3rem;
+  text-transform: uppercase;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-shadow:
+    4px 4px 0px #4caf50,
+    8px 8px 15px rgba(0, 0, 0, 0.5);
+  margin-bottom: 10px;
+  animation: titleFloat 3s ease-in-out infinite; /* Efek melayang */
+}
+
+/* Animasi melayang untuk judul */
+@keyframes titleFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pastikan overlay menutupi seluruh layar */
+#start-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: none; /* Akan diubah ke 'flex' oleh JS */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+#start-game-btn {
+  padding: 20px 40px;
+  font-size: 1.5rem;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 10px 0 #e68a00;
+  font-weight: bold;
+}
+
+#start-game-btn:active {
+  transform: translateY(5px);
+  box-shadow: 0 5px 0 #e68a00;
+}
+
+/* DIALOG */
+#dialog-box {
+  position: absolute;
+  bottom: 20px; /* Sedikit lebih tinggi agar tidak mepet bawah */
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 90%;
+  max-width: 600px;
+  min-height: 100px; /* Ukuran minimal agar stabil */
+
+  /* Desain Neo-Brutalism Modern */
+  background: rgba(255, 255, 255, 0.95); /* Putih bersih hampir solid */
+  color: #1a1a1a; /* Teks gelap agar kontras */
+
+  padding: 15px;
+  border: 4px solid #000; /* Border hitam tebal */
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2); /* Bayangan soft atau ganti #000 untuk full brutalism */
+
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+#dialog-header {
+  position: absolute;
+  top: -18px;
+  left: 20px;
+  background: #4caf50;
+  color: white;
+  padding: 5px 18px;
+  font-weight: 900;
+  font-size: 0.8rem;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  display: none; /* Sembunyi jika tidak ada nama */
+  z-index: 1001;
+}
+
+#dialog-text {
+  font-family: "Courier New", Courier, monospace; /* Gaya retro typewriter */
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-top: 10px;
+  min-height: 3.2em;
+}
+
+#dialog-text::after {
+  content: "_"; /* Karakter underscore lebih cocok untuk gaya terminal/retro */
+  margin-left: 4px;
+  color: #4caf50;
+  font-weight: 900;
+  animation: blink 0.8s infinite;
+}
+
+/* Sembunyikan kursor jika sudah selesai mengetik */
+#dialog-text.done-typing::after {
+  display: none;
+}
+
+#next-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px #000;
+}
+
+/* ANIMASI KURSOR */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+#next-btn {
+  align-self: flex-end;
+  margin-top: 15px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+
+  background: #4caf50;
+  color: white;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+/* Container isi overlay agar tersusun vertikal */
+.overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Container pembungkus agar tidak ada scroll */
+.certificate-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100dvh; /* Pastikan tinggi pas dengan layar dinamis HP */
+  width: 100vw;
+  overflow: hidden;
+  padding: 10px;
+}
+
+/* KARTU SERTIFIKAT */
+.certificate-card {
+  background: #ffffff;
+  background-image: radial-gradient(#4caf50 0.5px, transparent 0.5px);
+  background-size: 15px 15px;
+
+  /* Dimensi yang pas di layar */
+  width: 90%;
+  max-width: 500px;
+  height: auto;
+  max-height: 70dvh; /* Membatasi tinggi sertifikat agar ada ruang untuk tombol */
+
+  padding: 20px;
+  border: 6px double #4caf50;
+  text-align: center;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly; /* Membagi ruang antar elemen secara merata */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
+.certificate-card h3 {
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  letter-spacing: 1px;
+  color: #444;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid #ddd;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.cert-name {
+  font-family: "Georgia", serif;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  color: #2e6b31;
+  margin: 5px 0;
+  border-bottom: 2px solid #2e6b31;
+  display: inline-block;
+  padding: 0 15px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cert-sub {
+  font-size: 0.8rem;
+  margin: 2px 0;
+}
+
+.badge {
+  background: #ff9800;
+  color: white;
+  padding: 8px 20px;
+  font-weight: bold;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  margin: 10px auto;
+  width: fit-content;
+  border-radius: 6px;
+  box-shadow: 0 3px 0 #e68a00;
+  text-transform: uppercase;
+}
+
+.cert-footer {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: #666;
+  border-top: 1px dashed #ccc;
+  padding-top: 8px;
+}
+
+.cert-footer strong {
+  color: #2e6b31;
+  display: block;
+  font-size: 0.9rem;
+}
+
+/* INPUT NAMA */
+.certificate-input {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
+  text-align: center;
+}
+
+#player-name-input {
+  padding: 15px;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  font-size: 1.1rem;
+  outline: none;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 10px;
+}
+
+/* TOMBOL AKSI */
+.cert-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+#download-cert-btn {
+  background: #2196f3;
+  box-shadow: 0 6px 0 #1976d2;
+}
+
+#download-cert-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #1976d2;
+}
+
+.cert-retry-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #2e7d32;
+}
+
+.cert-retry-btn {
+  padding: 15px 30px;
+  background: #4caf50;
+  color: white;
+  box-shadow: 0 6px 0 #2e7d32 !important;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.cert-retry-btn:hover {
+  background: #66bb6a;
+}
+
+/* Penyesuaian Mobile: Agar sertifikat tidak terpotong di layar HP */
+@media screen and (max-width: 650px) {
+  .certificate-card {
+    padding: 20px;
+    width: 90vw;
+  }
+  .cert-name {
+    font-size: 1.8rem;
+  }
+  .badge {
+    font-size: 1rem;
+  }
+}
+
+/* --- TOMBOL MODERN (NEO-BRUTALISM STYLE) --- */
+.main-start-btn,
+.cert-retry-btn,
+#claim-cert-btn {
+  all: unset; /* Reset style bawaan */
+  cursor: pointer;
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: #4caf50;
+  color: white;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: inline-block;
+  text-align: center;
+}
+
+.main-start-btn:hover,
+.cert-retry-btn:hover,
+#claim-cert-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px #000;
+  background: #66bb6a;
+}
+
+.main-start-btn:active,
+.cert-retry-btn:active,
+#claim-cert-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Container Menu */
+.menu-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* Tombol Sub-Menu (Neo-Brutalism) */
+.sub-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 20px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px #000;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+}
+
+.sub-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #000;
+}
+
+/* Modal Styling */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  border: 4px solid #000;
+  padding: 30px;
+  width: 80%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 10px 10px 0px #4caf50;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 2rem;
+  cursor: pointer;
+  font-weight: bold;
+}

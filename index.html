@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Petualangan Probabilitas</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/icongame.png" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  </head>
+  <body>
+    <div id="game">
+      <!-- MAP INTRO -->
+      <div id="intro-map">
+        <div class="layer sky"></div>
+        <div class="layer clouds"></div>
+        <div class="layer mountains"></div>
+        <div class="layer ground"></div>
+        <div class="layer front"></div>
+
+        <div id="player"></div>
+      </div>
+
+      <div id="portal"></div>
+
+      <!-- DIALOG -->
+      <div id="dialog-box">
+        <div id="dialog-header"></div>
+        <p id="dialog-text"></p>
+        <button id="next-btn">Lanjut</button>
+      </div>
+    </div>
+
+    <div id="rotate-warning">
+      <p>Mohon putar HP kamu ke Landscape untuk bermain!</p>
+    </div>
+
+    <div id="controls">
+      <button id="btn-left" class="control-btn">←</button>
+      <button id="btn-right" class="control-btn">→</button>
+    </div>
+
+    <div id="start-overlay" style="display: none">
+      <div class="overlay-content">
+        <h1 class="game-title">Petualangan Probabilitas</h1>
+
+        <button id="start-game-btn" class="main-btn">MULAI PERJALANAN</button>
+
+        <div class="menu-group">
+          <button id="btn-tutorial" class="sub-btn">📖 Tutorial</button>
+          <button id="btn-materi" class="sub-btn">🧠 Materi</button>
+          <button id="btn-audio" class="sub-btn">🔊 Audio: ON</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="info-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
