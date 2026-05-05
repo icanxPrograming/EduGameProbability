@@ -3,7 +3,7 @@ import { setMapTheme, adjustPlayerPosition } from "./core/scrollManager.js";
 import { initDialog } from "./ui/dialogBox.js";
 import { initPlayer, setPlayerControl } from "./scenes/introScene.js";
 import { showIntroPopup } from "./ui/popupInfo.js";
-import { toggleControlButtons } from "./ui/buttonUI.js"; // Tambahkan initMenuSystem
+import { toggleControlButtons, toggleArrow } from "./ui/buttonUI.js"; // Tambahkan initMenuSystem
 
 const introDialogs = [
   "Setiap hari, kita dihadapkan pada berbagai kemungkinan.",
@@ -13,22 +13,22 @@ const introDialogs = [
 
 const storyDialogs = [
   {
-    name: "JACKOWI",
-    text: "Hai kawan, namaku Jackowi, aku tersesat di dimensi probabilitas ini.",
+    name: "JACKCOBI",
+    text: "Hai kawan, namaku Jackcobi, aku tersesat di dimensi probabilitas ini.",
   },
-  { name: "JACKOWI", text: "Aku tidak tahu jalan pulang ke rumah..." },
-  { name: "JACKOWI", text: "Maukah kamu membantuku kembali?" },
+  { name: "JACKCOBI", text: "Aku tidak tahu jalan pulang ke rumah..." },
+  { name: "JACKCOBI", text: "Maukah kamu membantuku kembali?" },
   {
-    name: "JACKOWI",
+    name: "JACKCOBI",
     text: "Kita harus memecahkan teka-teki Peluang untuk membuka jalan.",
   },
-  { name: "JACKOWI", text: "Ayo kita mulai perjalanannya!" },
+  { name: "JACKCOBI", text: "Ayo kita mulai perjalanannya!" },
 ];
 
 const surpriseDialog = [
-  { name: "JACKOWI", text: "Waw! Portal apa itu tiba-tiba muncul?!" },
+  { name: "JACKCOBI", text: "Waw! Portal apa itu tiba-tiba muncul?!" },
   {
-    name: "JACKOWI",
+    name: "JACKCOBI",
     text: "Sepertinya itu jalan menuju Hutan Ruang Sampel. Ayo kita masuk!",
   },
 ];
@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Standar awal: kontrol mati
   setPlayerControl(false);
   toggleControlButtons(false);
+  toggleArrow(false);
 
   const dialogBox = document.getElementById("dialog-box");
 
@@ -68,14 +69,15 @@ document.addEventListener("DOMContentLoaded", () => {
       // Jalankan Fullscreen & Orientasi saat tombol Start diklik
       handleOrientation();
 
-      // 4. Jalankan Dialog Cerita (Narasi Jackowi)
+      // 4. Jalankan Dialog Cerita (Narasi JACKCOBI)
       initDialog(storyDialogs, () => {
         dialogBox.style.display = "none";
 
         // AKHIR: Aktifkan gameplay
         setPlayerControl(true);
         toggleControlButtons(true);
-        console.log("Game dimainkan: Jackowi siap berpetualang.");
+        toggleArrow(true);
+        console.log("Game dimainkan: JACKCOBI siap berpetualang.");
       });
     });
   });

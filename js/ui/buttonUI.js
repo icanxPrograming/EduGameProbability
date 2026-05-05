@@ -20,6 +20,14 @@ export function toggleControlButtons(show) {
   controls.style.display = show ? "flex" : "none";
 }
 
+// js/ui/buttonUI.js
+export function toggleArrow(show) {
+  const arrow = document.getElementById("arrow-indicator");
+  if (arrow) {
+    arrow.style.display = show ? "block" : "none";
+  }
+}
+
 // FUNGSI BARU: Inisialisasi Menu Tambahan
 // export function initMenuSystem() {
 //   const modal = document.getElementById("info-modal");

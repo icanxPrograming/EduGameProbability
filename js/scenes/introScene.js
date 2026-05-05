@@ -5,6 +5,7 @@ import { triggerEnding } from "./endingScene.js";
 import { initStage1 } from "./stage1Scene.js";
 import { initStage2 } from "./stage2Scene.js";
 import { initStage3 } from "./stage3Scene.js";
+import { toggleArrow } from "../ui/buttonUI.js";
 
 const player = document.getElementById("player");
 const btnLeft = document.getElementById("btn-left");
@@ -23,7 +24,7 @@ let state = {
   frame: 1,
   direction: "right",
   isMoving: false,
-  x: 120,
+  x: 20,
   keys: {},
   canMove: false,
 };
@@ -36,6 +37,7 @@ export function updateSprite() {
 
 export function setPlayerControl(value) {
   state.canMove = value;
+  console.log("Player Control Set To:", value);
   if (!value) {
     state.isMoving = false;
     updateSprite();
@@ -45,6 +47,8 @@ export function setPlayerControl(value) {
 function handleStageTransition() {
   // Matikan kontrol agar tidak terjadi double-trigger saat transisi
   setPlayerControl(false);
+
+  toggleArrow(false);
 
   if (currentStage === "intro") {
     currentStage = "stage1";
@@ -93,6 +97,9 @@ export function initPlayer() {
   handleTouch(btnLeft, "a");
   handleTouch(btnRight, "d");
 
+  player.style.left = state.x + "px";
+  updateSprite();
+
   setInterval(() => {
     if (state.isMoving) {
       state.frame = (state.frame + 1) % config.totalFrames;
@@ -103,46 +110,66 @@ export function initPlayer() {
   function gameLoop() {
     if (state.canMove) {
       let moving = false;
-      // Ambil lebar layar terbaru setiap frame untuk responsivitas
       const screenWidth = window.innerWidth;
+      const currentSpeed = state.speed || config.moveSpeed;
 
       // 1. Logika Gerak Kanan
       if (state.keys["d"] || state.keys["D"] || state.keys["ArrowRight"]) {
         state.direction = "right";
-        state.x += config.moveSpeed;
-        moving = true;
 
-        // Jika hidung karakter keluar layar, pindah stage
-        if (state.x > screenWidth) {
-          handleStageTransition();
+        const arrowEl = document.getElementById("arrow-indicator");
+        const isArrowVisible =
+          arrowEl && getComputedStyle(arrowEl).display === "block";
+
+        // Tentukan batas kanan:
+        // Jika di intro atau panah muncul, batasnya adalah tak terhingga (untuk pindah stage)
+        // Jika tidak, batasnya adalah screenWidth
+        const canExit = currentStage === "intro" || isArrowVisible;
+
+        if (state.x + currentSpeed > screenWidth) {
+          if (canExit) {
+            // Jika boleh lewat, biarkan x bertambah dan panggil transisi
+            state.x += currentSpeed;
+            handleStageTransition();
+            return requestAnimationFrame(gameLoop);
+          } else {
+            // JIKA TIDAK BOLEH LEWAT: Paksa mentok di screenWidth
+            state.x = screenWidth;
+            moving = false; // Jackowi akan berhenti animasi jalannya
+          }
+        } else {
+          // Gerak normal jika masih jauh dari pinggir
+          state.x += currentSpeed;
+          moving = true;
         }
       }
+
       // 2. Logika Gerak Kiri
       else if (state.keys["a"] || state.keys["A"] || state.keys["ArrowLeft"]) {
         state.direction = "left";
-        state.x -= config.moveSpeed;
+        state.x -= currentSpeed;
         moving = true;
 
-        // Mentok layar kiri
+        // Mentok kiri (sudah stabil)
         if (state.x < 0) {
           state.x = 0;
         }
       }
 
-      // 3. Sinkronisasi Animasi & Posisi DOM
+      // 3. Sinkronisasi Animasi
       if (moving !== state.isMoving) {
         state.isMoving = moving;
         updateSprite();
       }
 
-      // Terapkan posisi ke elemen player
+      // Terapkan ke DOM
       player.style.left = state.x + "px";
     }
 
-    // Jalankan loop terus menerus
     requestAnimationFrame(gameLoop);
   }
 
+  player.style.left = state.x + "px";
   updateSprite();
   gameLoop();
 }

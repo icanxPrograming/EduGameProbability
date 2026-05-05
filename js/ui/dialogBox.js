@@ -6,7 +6,7 @@ let typingTimeout;
 
 // Inisialisasi Audio
 const typeSound = new Audio("assets/audio/typewritter.mp3");
-typeSound.volume = 0.1; // Sesuaikan volume agar tidak terlalu berisik
+typeSound.volume = 0.05; // Sesuaikan volume agar tidak terlalu berisik
 
 export function initDialog(dialogList, onComplete) {
   let dialogIndex = 0;
